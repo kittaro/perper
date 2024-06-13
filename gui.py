@@ -70,7 +70,7 @@ def extract_mdata(file_paths):
     supported_files_found = False
 
     for file_path in file_paths:
-        dir_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        dir_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=15))
         dir_path = os.path.join(TEMP_DIR, dir_name)
         os.makedirs(dir_path, exist_ok=True)
 
@@ -86,13 +86,13 @@ def extract_mdata(file_paths):
                 'Композитор': tag.composer,
                 'Жанр': tag.genre,
                 'Битрейт': f"{round(tag.bitrate)} kBits/s" if tag.bitrate else "Данные недоступны",
-                'Частота дискретизации': f"{tag.samplerate / 1000:.1f} kHz" if tag.samplerate else "Данные недоступны",
+                'Частота дискретизации': f"{tag.samplerate} Hz" if tag.samplerate else "Данные недоступны",
                 'Каналы': tag.channels,
                 'Номер трека': tag.track,
                 'Всего треков': tag.track_total,
                 'Диск': tag.disc,
                 'Всего дисков': tag.disc_total,
-                'Год': tag.year,
+                'Дата': tag.year,
                 'Комментарий': tag.comment
             }
 
@@ -147,10 +147,10 @@ def update_content_comboboxes():
     if extracted_metadata:
         # разделение на 1/несколько файлов
         if len(extracted_metadata.get('Название трека', [])) > 1:
-            keys_to_add = ['Название альбома', 'Исполнитель альбома', 'Всего дисков', 'Год', 'Всего треков']
+            keys_to_add = ['Название альбома', 'Исполнитель альбома', 'Всего дисков', 'Дата', 'Всего треков']
         else:
             keys_to_add = ['Название трека', 'Название альбома', 'Исполнитель трека', 'Исполнитель альбома', 'Композитор', 'Жанр',
-                'Битрейт', 'Частота дискретизации', 'Каналы', 'Номер трека', 'Всего треков', 'Диск', 'Всего дисков', 'Год', 'Комментарий']
+                'Битрейт', 'Частота дискретизации', 'Каналы', 'Номер трека', 'Всего треков', 'Диск', 'Всего дисков', 'Дата', 'Комментарий']
 
         # добавление ключи метаданных в from_file (порядок ключей НЕ менять)
         for key in keys_to_add:
@@ -197,7 +197,7 @@ def save_config(config_name):
     config_path = os.path.join(CONFIGS_DIR, config_name + file_type_suffix + CONFIG_EXTENSION)
 
     config_data = {
-        'test_version': '1.4',
+        'test_version': '1.5',
         'api_token': window.api_token_edit.text(),
         'group_id': window.group_edit.text(),
         'content': []
@@ -266,14 +266,14 @@ class SaveConfigDialog(MessageBoxBase):
 class Window(AcrylicWindow):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.resize(1200, 800)
+        self.resize(1200, 900)
         self.setTitleBar(StandardTitleBar(self))
         self.setWindowIcon(QIcon("logo.png"))
         self.setWindowTitle("perper")
         self.setAcceptDrops(True)
-        #self.windowEffect.setMicaEffect(self.winId(), False)  # !!!убрать для поддержки Win10!!!
-        self.windowEffect.addShadowEffect(self.winId())        # windows10 - 1
-        self.windowEffect.removeBackgroundEffect(self.winId()) # windows10 - 2
+        self.windowEffect.setMicaEffect(self.winId(), False)  # !!!убрать для поддержки Win10!!! # переключатель - следовать системной теме оформления
+        #self.windowEffect.addShadowEffect(self.winId())        # windows10 - 1
+        #self.windowEffect.removeBackgroundEffect(self.winId()) # windows10 - 2
         self.interface_created = False
 
         self.main_layout = QVBoxLayout()
@@ -289,7 +289,7 @@ class Window(AcrylicWindow):
         self.drop_label = TitleLabel("Перетащите файлы в окно для продолжения работы")
         self.main_layout.addWidget(self.drop_label, alignment=Qt.AlignCenter | Qt.AlignBottom)
 
-        self.drop_subtext = BodyLabel("Поддерживаемые типы файлов: mp3, ogg, opus, m4a, flac, wma и wave")
+        self.drop_subtext = BodyLabel("Поддерживаемые типы файлов: mp3, ogg, m4a, flac, opus, wma и wave")
         self.main_layout.addWidget(self.drop_subtext, alignment=Qt.AlignCenter | Qt.AlignTop)
 
         clear_temp_folder()
@@ -323,7 +323,7 @@ class Window(AcrylicWindow):
         global message_container
         message_container = QWidget(self)
         message_container.setStyleSheet("background-color:white; border-radius:24px; border-bottom-left-radius: 4px")
-#        message_container.setMinimumHeight(200)
+        message_container.setMinimumHeight(50)
         message_container.setMaximumHeight(900)
         message_container.setFixedWidth(400)
         preview_layout.addWidget(message_container, alignment=Qt.AlignBottom)
@@ -402,7 +402,7 @@ class Window(AcrylicWindow):
 
         # --- комбобоксы содержания ---
         global content_comboboxes
-        for i in range(6):
+        for i in range(8):
             content_combobox = create_content_combobox(i)
             content_comboboxes.append(content_combobox)
             settings_layout.addLayout(content_combobox)
@@ -472,6 +472,7 @@ class Window(AcrylicWindow):
             album_art.scaledToWidth(message_container.width() - 18) # почему -18 ? +_ёто костыль
             message_layout.update()
 
+
     def send_message_to_channel(self):
         # отправка !ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ пж
         token = self.api_token_edit.text()
@@ -504,7 +505,7 @@ class Window(AcrylicWindow):
             print(message)  # в терминал если нет
 
     def dragEnterEvent(self, event):
-        # обработка ПЕРЕТАКСИВАНИЯ
+        # обработка ПЕРЕТАКСИВАНИЯ только
         if event.mimeData().hasUrls():
             event.accept()
         else:
@@ -532,6 +533,7 @@ class Window(AcrylicWindow):
                             self.create_main_interface()
                             self.interface_created = True
 
+                        album_art.setImage() # очистить наконец обложку
                         self.update_flipview()
                         self.update_album_art(0)
                         update_content_comboboxes()
@@ -557,7 +559,7 @@ class Window(AcrylicWindow):
     def is_supported_file(self, file_path):
         # проверяет, поддерживается ли файл
         try:
-            TinyTag.get(file_path)  # пробует извлечь метаданные
+            TinyTag.get(file_path)  # пробует извлечь метаданные 
             return True
         except TinyTagException:
             return False
