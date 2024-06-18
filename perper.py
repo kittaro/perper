@@ -273,7 +273,7 @@ class Window(AcrylicWindow):
         super().__init__(parent=parent)
         self.resize(1200, 800)
         self.setTitleBar(StandardTitleBar(self))
-        self.setWindowIcon(QIcon("logo.png"))
+        self.setWindowIcon(QIcon("logo.ico"))
         self.setWindowTitle("perper")
         self.setAcceptDrops(True)
         self.windowEffect.setMicaEffect(self.winId(), False)  # !!!убрать для поддержки Win10!!! # переключатель - следовать системной теме оформления
@@ -480,7 +480,7 @@ class Window(AcrylicWindow):
 
 
     def send_message_to_channel(self):
-        # отправка !ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ пж
+        # отправка !ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ
         token = self.api_token_edit.text()
         channel_id = self.group_edit.text()
         message_text = message_label.text()
