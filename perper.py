@@ -79,6 +79,7 @@ def extract_mdata(file_paths):
             supported_files_found = True
 
             metadata = {
+                'Пустое поле': "",
                 'Название трека': tag.title,
                 'Название альбома': tag.album,
                 'Исполнитель трека': tag.artist,
@@ -94,7 +95,6 @@ def extract_mdata(file_paths):
                 'Всего дисков': tag.disc_total,
                 'Дата': tag.year,
                 'Комментарий': tag.comment,
-                'Пустое поле': ""
             }
 
             for key, value in metadata.items():
@@ -150,10 +150,10 @@ def update_content_comboboxes():
     if extracted_metadata:
         # разделение на 1/несколько файлов
         if len(extracted_metadata.get('Название трека', [])) > 1:
-            keys_to_add = ['Название альбома', 'Исполнитель альбома', 'Всего дисков', 'Дата', 'Всего треков', 'Пустое поле']
+            keys_to_add = ['Пустое поле', 'Название альбома', 'Исполнитель альбома', 'Всего дисков', 'Дата', 'Всего треков']
         else:
-            keys_to_add = ['Название трека', 'Название альбома', 'Исполнитель трека', 'Исполнитель альбома', 'Композитор', 'Жанр',
-                'Битрейт', 'Частота дискретизации', 'Каналы', 'Номер трека', 'Всего треков', 'Диск', 'Всего дисков', 'Дата', 'Комментарий', 'Пустое поле']
+            keys_to_add = ['Пустое поле','Название трека', 'Название альбома', 'Исполнитель трека', 'Исполнитель альбома', 'Композитор', 'Жанр',
+                'Битрейт', 'Частота дискретизации', 'Каналы', 'Номер трека', 'Всего треков', 'Диск', 'Всего дисков', 'Дата', 'Комментарий']
 
         # добавление ключи метаданных в from_file (порядок ключей НЕ менять)
         for key in keys_to_add:
@@ -185,8 +185,7 @@ def update_message_container():
                 metadata_values = extracted_metadata[metadata_key]
                 if len(metadata_values) > current_index:
                     metadata_value = metadata_values[current_index]
-                    if metadata_value is None:
-                        metadata_value = "Данные недоступны"
+                    if metadata_value is None: metadata_value = "Данные недоступны"
 
             message_text += f"\n{emoji} {text} {metadata_value}"
             
@@ -202,7 +201,7 @@ def save_config(config_name):
     config_path = os.path.join(CONFIGS_DIR, config_name + file_type_suffix + CONFIG_EXTENSION)
 
     config_data = {
-        'test_version': '1.5',
+        'test_version': '1.6_empty_first_one',
         'api_token': window.api_token_edit.text(),
         'group_id': window.group_edit.text(),
         'content': []
