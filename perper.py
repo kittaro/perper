@@ -256,12 +256,17 @@ class SaveConfigDialog(MessageBoxBase):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Сохранить конфигурацию")
-        self.titleLabel = SubtitleLabel("Введите название конфигурации:")
+        self.titleLabel = SubtitleLabel("Введите название конфигурации")
+        self.infoLineEdit = BodyLabel(f"- Рекомендуется использовать только латинские и кириллические буквы, а также цифры во избежани проблем сохранения\n- Не более 64 символов\n- Название должно быть уникальным, иначе файл будет перезаписан")
+        self.infoLineEdit.setWordWrap(True)
         self.nameLineEdit = LineEdit()
         self.nameLineEdit.setPlaceholderText("Название конфигурации")
+        self.nameLineEdit.setMaxLength(64)
         self.viewLayout.addWidget(self.titleLabel)
+        self.viewLayout.addWidget(self.infoLineEdit)
+        self.viewLayout.addSpacing(10)
         self.viewLayout.addWidget(self.nameLineEdit)
-        self.widget.setMinimumWidth(350)
+        self.widget.setMinimumWidth(500)
 
         self.yesButton.setText("Сохранить")
         self.cancelButton.setText("Отмена")
@@ -412,6 +417,7 @@ class Window(AcrylicWindow):
             settings_layout.addLayout(content_combobox)
 
         # --- текст о FlipView и Pager ---
+        settings_layout.addSpacing(10)
         self.choose_cover_label = SubtitleLabel("Выберите обложку")
         settings_layout.addWidget(self.choose_cover_label)
 
@@ -442,7 +448,7 @@ class Window(AcrylicWindow):
 
         # --- ни:З ---
         settings_layout.addStretch()
-        self.log_text = CaptionLabel("Здесь будут логи")
+        self.log_text = CaptionLabel("")
         self.log_text.setWordWrap(True)
         settings_layout.addWidget(self.log_text)
 
@@ -474,7 +480,7 @@ class Window(AcrylicWindow):
             image_path = image_paths[index]
             album_art.setImage(image_path)
             album_art.setBorderRadius(16, 16, 16, 16)
-            album_art.scaledToWidth(message_container.width() - 18) # почему -18 ? +_ёто костыль
+            album_art.scaledToWidth(message_container.width() - 18) # почему -18 ? +_ёто костыль (по скруглению исправление)
             message_layout.update()
 
 
@@ -502,7 +508,6 @@ class Window(AcrylicWindow):
         #
         # вывод логов + цвет
         # проверка на первый экран0.5
-        # !поправить немного
         #
         if self.interface_created:
             self.log_text.setText(f'<font color="{color}">{message}</font>')
