@@ -309,7 +309,7 @@ class Window(AcrylicWindow):
         self.icon_label.setFixedSize(64, 64)
         self.main_layout.addWidget(self.icon_label, alignment=Qt.AlignCenter | Qt.AlignBottom)
 
-        self.drop_label = TitleLabel("Перетащите файлы в окно для продолжения работы")
+        self.drop_label = TitleLabel("Добавьте файлы перетаскиванием в окно программы")
         self.main_layout.addWidget(self.drop_label, alignment=Qt.AlignCenter | Qt.AlignBottom)
 
         self.drop_subtext = BodyLabel("Поддерживаемые типы файлов: mp3, ogg, m4a, flac, opus, wma и wave")
