@@ -289,7 +289,11 @@ class Window(AcrylicWindow):
         super().__init__(parent=parent)
         self.resize(1200, 900)
         self.setTitleBar(StandardTitleBar(self))
-        self.setWindowIcon(QIcon("assets/logo.ico"))
+
+        self.base_dir = os.path.dirname(os.path.abspath(__file__)) # потому что pyinstaller
+        logo_path = os.path.join(self.base_dir, "assets", "logo.ico") # потому что pyinstaller
+        self.setWindowIcon(QIcon(logo_path)) # потому что pyinstaller
+
         self.setWindowTitle("Персональный ассистент")
         self.setAcceptDrops(True)
         self.windowEffect.setMicaEffect(self.winId(), False)  # !!!убрать для поддержки Win10!!! # переключатель - следовать системной теме оформления
@@ -335,7 +339,10 @@ class Window(AcrylicWindow):
         # --- preview_main ---
         preview_layout = QHBoxLayout()
         preview_main.setLayout(preview_layout)
-        self.avatar_widget = AvatarWidget("assets/avatar.png")
+
+        avatar_path = os.path.join(self.base_dir, "assets", "avatar.png") # потому что pyinstaller
+        self.avatar_widget = AvatarWidget(avatar_path) # потому что pyinstaller
+
         self.avatar_widget.setRadius(24)
         preview_layout.addWidget(self.avatar_widget, alignment=Qt.AlignBottom)
         preview_layout.addSpacing(10)
