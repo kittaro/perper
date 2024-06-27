@@ -7,7 +7,7 @@ import sys
 import json
 import shutil
 from PyQt5.QtCore import Qt, QSize, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
 
 from qframelesswindow import AcrylicWindow, StandardTitleBar
@@ -434,7 +434,7 @@ class Window(AcrylicWindow):
         settings_layout.addWidget(self.choose_cover_label)
 
         self.current_file_label = CaptionLabel("Текущий файл для информации:")
-        self.current_file_label.setWordWrap(True)
+#        self.current_file_label.setWordWrap(True)
         settings_layout.addWidget(self.current_file_label)
 
         # --- контейнер для FlipView и Pager ---
@@ -566,15 +566,13 @@ class Window(AcrylicWindow):
                     else:
                         # проверка на первый экран1
                         if self.interface_created:
-                            self.log_to_widget(
-                                "Ошибка: Перетащите хотя бы один поддерживаемый аудиофайл.", "red")
+                            self.log_to_widget("Ошибка: Перетащите хотя бы один поддерживаемый аудиофайл.", "red")
                         else:
                             print("Ошибка: Перетащите хотя бы один поддерживаемый аудиофайл.")
                 else:
                     # проверка на первый экран2
                     if self.interface_created:
-                        self.log_to_widget(
-                            "Ошибка: Перетаскиваемые файлы не поддерживаются.", "red")
+                        self.log_to_widget("Ошибка: Перетаскиваемые файлы не поддерживаются.", "red")
                     else:
                         print("Ошибка: Перетаскиваемые файлы не поддерживаются.")
         else:
@@ -592,7 +590,18 @@ class Window(AcrylicWindow):
     def update_flipview(self):
         # обновляет FlipView с новыми обложками
         self.flipView.clear()
-        self.flipView.addImages(image_paths)
+        # через pixmap меньше нагрузка
+        if image_paths:
+            for image_path in image_paths:
+                pixmap = QPixmap(image_path)
+
+                if pixmap.isNull():
+                    self.log_to_widget(f"Ошибка загрузки изображения: {image_path}", "red")
+                else:
+                    self.flipView.addImage(pixmap)
+        else:
+            print("Список изображений пуст") 
+
         self.pager.setPageNumber(self.flipView.count())
         self.pager.setVisibleNumber(self.flipView.count())
 
@@ -612,12 +621,13 @@ class Window(AcrylicWindow):
         self.update_config_combobox()
 
     def update_current_file_label(self, index):
-        # обновляет текст с названием текущего файла
         if 0 <= index < len(image_paths):
             file_path = image_paths[index]
             file_name = os.path.splitext(os.path.basename(file_path))[0]
-            self.current_file_label.setText(
-                f"Текущий файл для информации: {file_name}")
+            # сокращение для названия
+            max_chars = 100
+            text = f"Текущий файл для информации: {file_name}"
+            self.current_file_label.setText(text[:max_chars - 3] + "..." if len(text) > max_chars else text)
 
 ### конфигурации
     def update_config_combobox(self):
