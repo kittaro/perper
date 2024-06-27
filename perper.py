@@ -11,7 +11,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
 
 from qframelesswindow import AcrylicWindow, StandardTitleBar
-from qfluentwidgets import PrimaryPushButton, TitleLabel, BodyLabel, ComboBox, SubtitleLabel, CheckBox, HorizontalFlipView, HorizontalPipsPager, AvatarWidget, ImageLabel, CaptionLabel, StrongBodyLabel, ToolButton, FluentIcon, MessageBoxBase, LineEdit
+from qfluentwidgets import PrimaryPushButton, TitleLabel, BodyLabel, ComboBox, SubtitleLabel, CheckBox, HorizontalFlipView, HorizontalPipsPager, AvatarWidget, ImageLabel, CaptionLabel, StrongBodyLabel, ToolButton, FluentIcon, MessageBoxBase, LineEdit, SingleDirectionScrollArea
 
 CONFIGS_DIR = 'configs'
 TEMP_DIR = 'temp'
@@ -53,9 +53,21 @@ class TelegramWorker(QThread):
             else:
                 bot.send_message(self.channel_id, self.message_text, timeout=5)
                 self.message_sent.emit("Текстовое сообщение отправлено.", "green")
+        # вывод информации об ошибках)))
         except Exception as e:
-            self.message_sent.emit(f"Ошибка при отправке сообщения: {e}", "red")
+            error_msg = "Ошибка при отправке сообщения: "
+            if e:
+                error = str(e).lower()
+                if "message text is empty" in error: error_msg += "Пустое сообщение."
+                elif "chat not found" in error: error_msg += "Telegram-канал не найден, проверьте корректность введённых данных."
+                elif "error code: 404" or "error code: 401" in error: error_msg += "Не удалось отправить запрос, проверьте корректность API Token."
+                elif "read timed out" in error: error_msg += "Превышено время ожидания. Повторите попытку позже или проверьте интернет соединение."
+                elif "bot is not а member" in error: error_msg += "Бот не добавлен в указанный Telegram-канал."
+                elif "need administrator rights" in error: error_msg += "Бот не является администратором в указанном Telegram-канале."
 
+                else: error_msg += str(e)
+
+            self.message_sent.emit(error_msg, "red")
 
 def extract_mdata(file_paths):
     # метаданные и обложка
@@ -275,16 +287,17 @@ class SaveConfigDialog(MessageBoxBase):
 class Window(AcrylicWindow):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.resize(1200, 800)
+        self.resize(1200, 900)
         self.setTitleBar(StandardTitleBar(self))
-        self.setWindowIcon(QIcon("logo.ico"))
-        self.setWindowTitle("perper")
+        self.setWindowIcon(QIcon("assets/logo.ico"))
+        self.setWindowTitle("Персональный ассистент")
         self.setAcceptDrops(True)
         self.windowEffect.setMicaEffect(self.winId(), False)  # !!!убрать для поддержки Win10!!! # переключатель - следовать системной теме оформления
         #self.windowEffect.addShadowEffect(self.winId())        # windows10 - 1
         #self.windowEffect.removeBackgroundEffect(self.winId()) # windows10 - 2
         self.interface_created = False
 
+        # первый экран ожидания
         self.main_layout = QVBoxLayout()
         self.setLayout(self.main_layout)
         self.main_layout.addSpacing(self.titleBar.height())
@@ -322,8 +335,7 @@ class Window(AcrylicWindow):
         # --- preview_main ---
         preview_layout = QHBoxLayout()
         preview_main.setLayout(preview_layout)
-
-        self.avatar_widget = AvatarWidget("avatar.png")
+        self.avatar_widget = AvatarWidget("assets/avatar.png")
         self.avatar_widget.setRadius(24)
         preview_layout.addWidget(self.avatar_widget, alignment=Qt.AlignBottom)
         preview_layout.addSpacing(10)
@@ -359,7 +371,7 @@ class Window(AcrylicWindow):
         settings_layout = QVBoxLayout()
         settings_main.setLayout(settings_layout)
         settings_layout.setContentsMargins(20, 20, 20, 20)
-
+        
         settings_title = TitleLabel("Параметры")
         settings_layout.addWidget(settings_title)
         settings_layout.addSpacing(10)
@@ -480,10 +492,10 @@ class Window(AcrylicWindow):
             image_path = image_paths[index]
             album_art.setImage(image_path)
             album_art.setBorderRadius(16, 16, 16, 16)
-            album_art.scaledToWidth(message_container.width() - 18) # почему -18 ? +_ёто костыль (по скруглению исправление)
+            album_art.scaledToWidth(message_container.width() - 18) # почему -18 ? +_ёто костыль (по скруглению исправление и отступы контейнера)
             message_layout.update()
 
-
+### публикация
     def send_message_to_channel(self):
         # отправка !ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ ПРОВЕРКУ
         token = self.api_token_edit.text()
@@ -504,16 +516,18 @@ class Window(AcrylicWindow):
         self.telegram_worker.message_sent.connect(self.log_to_widget)
         self.telegram_worker.start()
 
+### лог
     def log_to_widget(self, message, color="black"):
         #
         # вывод логов + цвет
-        # проверка на первый экран0.5
+        # проверка на первый экран
         #
         if self.interface_created:
             self.log_text.setText(f'<font color="{color}">{message}</font>')
         else:
-            print(message)  # в терминал если нет
+            print(message) # !в терминал если нет
 
+### drag and drop
     def dragEnterEvent(self, event):
         # обработка ПЕРЕТАКСИВАНИЯ только
         if event.mimeData().hasUrls():
@@ -574,6 +588,7 @@ class Window(AcrylicWindow):
         except TinyTagException:
             return False
 
+### flipview
     def update_flipview(self):
         # обновляет FlipView с новыми обложками
         self.flipView.clear()
@@ -604,6 +619,7 @@ class Window(AcrylicWindow):
             self.current_file_label.setText(
                 f"Текущий файл для информации: {file_name}")
 
+### конфигурации
     def update_config_combobox(self):
         # обновляет список доступных конфигураций
         self.config_combobox.clear()
