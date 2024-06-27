@@ -60,14 +60,11 @@ class TelegramWorker(QThread):
                 error = str(e).lower()
                 if "message text is empty" in error: error_msg += "Пустое сообщение."
                 elif "chat not found" in error: error_msg += "Telegram-канал не найден, проверьте корректность введённых данных."
-                elif "error code: 404" or "error code: 401" in error: error_msg += "Не удалось отправить запрос, проверьте корректность API Token."
                 elif "read timed out" in error: error_msg += "Превышено время ожидания. Повторите попытку позже или проверьте интернет соединение."
-                elif "bot is not а member" in error: error_msg += "Бот не добавлен в указанный Telegram-канал."
-                elif "need administrator rights" in error: error_msg += "Бот не является администратором в указанном Telegram-канале."
 
                 else: error_msg += str(e)
 
-            self.message_sent.emit(error_msg, "red")
+            self.message_sent.emit("Ошибка от Telegram: " + str(e), "red")
 
 def extract_mdata(file_paths):
     # метаданные и обложка
